@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Gourav's World</title>
   <script type="importmap">
     {
@@ -14,19 +15,26 @@
   </script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial;background:linear-gradient(180deg,#74bdf3 0%,#a9d6ff 100%);color:#1f2937;overflow:hidden}
+    body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial;background:linear-gradient(180deg,#74bdf3 0%,#a9d6ff 100%);color:#1f2937;overflow:hidden;touch-action:none}
     #canvas{position:fixed;inset:0}
     
     #start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);color:#fff;z-index:50;transition:opacity .4s}
     #start.hidden{opacity:0;pointer-events:none}
-    #start h1{font-size:32px;font-weight:800;letter-spacing:.5px}
-    #start p{opacity:.9;font-size:16px}
+    #start h1{font-size:32px;font-weight:800;letter-spacing:.5px;text-align:center;padding:0 20px}
+    #start p{opacity:.9;font-size:16px;text-align:center;padding:0 20px}
     #go{padding:14px 28px;border:0;border-radius:999px;background:#fff;color:#111;font-weight:700;cursor:pointer;font-size:16px;transition:transform .2s}
     #go:hover{transform:scale(1.05)}
     
-    .hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.95);padding:12px 20px;border-radius:16px;font-size:14px;color:#374151;z-index:10;box-shadow:0 6px 30px rgba(0,0,0,.15);font-weight:500}
+    /* Mobile hint */
+    .hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.95);padding:12px 20px;border-radius:16px;font-size:14px;color:#374151;z-index:10;box-shadow:0 6px 30px rgba(0,0,0,.15);font-weight:500;max-width:90%;text-align:center}
     
-    #avatarCard{position:fixed;top:20px;right:20px;background:linear-gradient(135deg, rgba(255,255,255,.98), rgba(238,242,255,.98));padding:20px;border-radius:20px;box-shadow:0 8px 32px rgba(79,70,229,.2);max-width:320px;z-index:15;backdrop-filter:blur(10px);border:1px solid rgba(99,102,241,.3)}
+    /* Sound button - top left */
+    #soundBtn{position:fixed;top:20px;left:20px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(99,102,241,.95));border:2px solid rgba(255,255,255,.4);color:#fff;font-size:24px;cursor:pointer;z-index:15;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(79,70,229,.3);transition:all .3s}
+    #soundBtn:hover{transform:scale(1.1);box-shadow:0 6px 16px rgba(79,70,229,.4)}
+    #soundBtn.muted{background:linear-gradient(135deg, rgba(107,114,128,.8), rgba(156,163,175,.8))}
+    
+    /* Mobile responsive cards */
+    #avatarCard{position:fixed;top:80px;right:20px;background:linear-gradient(135deg, rgba(255,255,255,.98), rgba(238,242,255,.98));padding:20px;border-radius:20px;box-shadow:0 8px 32px rgba(79,70,229,.2);max-width:320px;z-index:15;backdrop-filter:blur(10px);border:1px solid rgba(99,102,241,.3)}
     #avatarCard h3{font-size:20px;margin-bottom:8px;background:linear-gradient(135deg, #4f46e5, #6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700}
     #avatarCard p{font-size:14px;line-height:1.6;color:#4b5563;margin-bottom:12px}
     #avatarCard .tip{background:linear-gradient(135deg, #eef2ff, #e0e7ff);padding:10px 12px;border-radius:10px;font-size:13px;color:#4f46e5;border-left:3px solid #6366f1}
@@ -38,7 +46,7 @@
     #hoverCard .preview{font-size:13px;line-height:1.5;color:#6b7280}
     #hoverCard .click-hint{margin-top:10px;font-size:12px;background:linear-gradient(135deg, #6366f1, #818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:600}
     
-    /* CLICKABLE LABELS - Main interaction point */
+    /* CLICKABLE LABELS - Mobile optimized */
     .island-label{
       position:absolute;
       background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(99,102,241,.95));
@@ -55,6 +63,7 @@
       border:2px solid rgba(255,255,255,.4);
       transition:all .3s;
       pointer-events:auto;
+      touch-action:manipulation;
     }
     .island-label:hover{
       transform:translate(-50%,-50%) scale(1.1);
@@ -77,6 +86,40 @@
     .popup-highlight{background:linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);border-left:4px solid #818cf8;padding:12px 14px;border-radius:10px;margin:.45rem 0;color:#1f2937;font-weight:500;font-size:14px;box-shadow:0 2px 4px rgba(99,102,241,.1)}
     .x{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:0;background:linear-gradient(135deg, #f3f4f6, #e5e7eb);cursor:pointer;font-size:24px;transition:all .2s;color:#6b7280;box-shadow:0 2px 8px rgba(0,0,0,.1)}
     .x:hover{background:linear-gradient(135deg, #e5e7eb, #d1d5db);transform:scale(1.1);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+    
+    /* MOBILE RESPONSIVE */
+    @media (max-width: 768px) {
+      #start h1{font-size:24px}
+      #start p{font-size:14px}
+      #go{padding:12px 24px;font-size:14px}
+      
+      #avatarCard{top:80px;right:10px;left:10px;max-width:none;padding:16px}
+      #avatarCard h3{font-size:18px}
+      #avatarCard p{font-size:13px}
+      #avatarCard .tip{font-size:12px;padding:8px 10px}
+      
+      #hoverCard{bottom:70px;left:10px;right:10px;max-width:none;padding:14px}
+      #hoverCard h4{font-size:16px}
+      #hoverCard .preview{font-size:12px}
+      
+      .island-label{font-size:13px;padding:10px 16px}
+      
+      .popup{padding:24px;max-height:85vh}
+      .popup h2{font-size:24px}
+      .popup .subtitle{font-size:14px}
+      .popup .description{font-size:14px}
+      .popup-item, .popup-highlight{font-size:13px;padding:10px 12px}
+      
+      .hint{font-size:12px;padding:10px 16px;bottom:16px}
+      
+      #soundBtn{width:45px;height:45px;font-size:20px}
+    }
+    
+    @media (max-width: 480px) {
+      #start h1{font-size:20px}
+      .popup h2{font-size:20px}
+      .island-label{font-size:12px;padding:8px 14px}
+    }
   </style>
 </head>
 <body>
@@ -87,6 +130,9 @@
   </div>
   
   <div class="hint">👆 Click island labels to view details · 🔄 Drag to rotate</div>
+  
+  <!-- Sound Control Button -->
+  <button id="soundBtn" title="Toggle Sound">🔊</button>
   
   <div id="avatarCard">
     <h3>👋 Welcome!</h3>
@@ -101,8 +147,20 @@
     <div class="click-hint">👆 Click label to view full details</div>
   </div>
   
+  <!-- Background Music -->
   <audio id="bg" loop>
     <source src="https://assets.codepen.io/210284/The-Grand-Affair.mp3" type="audio/mpeg" />
+  </audio>
+  
+  <!-- Sound Effects -->
+  <audio id="clickSound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" type="audio/mpeg" />
+  </audio>
+  <audio id="hoverSound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3" type="audio/mpeg" />
+  </audio>
+  <audio id="popupSound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg" />
   </audio>
   
   <div id="canvas"></div>
@@ -133,6 +191,20 @@
     const root = document.getElementById('canvas');
     const islandLabels = new Map();
     const islandGroups = [];
+    
+    // Sound system
+    let soundEnabled = true;
+    const bgMusic = document.getElementById('bg');
+    const clickSound = document.getElementById('clickSound');
+    const hoverSound = document.getElementById('hoverSound');
+    const popupSound = document.getElementById('popupSound');
+    
+    function playSound(audio) {
+      if (!soundEnabled || !audio) return;
+      audio.currentTime = 0;
+      audio.volume = 0.3;
+      audio.play().catch(e => console.log('Sound play prevented'));
+    }
 
     async function init() {
       try {
@@ -163,7 +235,14 @@
       scene.fog = new THREE.Fog(0x87ceeb, 50, 150);
 
       camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 500);
-      camera.position.set(0, 50, 75);
+      
+      // Mobile-optimized camera position
+      const isMobile = window.innerWidth <= 768;
+      if (isMobile) {
+        camera.position.set(0, 60, 90); // Further back on mobile
+      } else {
+        camera.position.set(0, 50, 75);
+      }
 
       renderer = new THREE.WebGLRenderer({ antialias:true });
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -178,6 +257,14 @@
       controls.minDistance = 30;
       controls.maxDistance = 120;
       controls.maxPolarAngle = Math.PI / 2.2;
+      
+      // Mobile touch controls
+      controls.touches = {
+        ONE: THREE.TOUCH.ROTATE,
+        TWO: THREE.TOUCH.DOLLY_PAN
+      };
+      controls.enableZoom = true;
+      controls.zoomSpeed = 1.2;
 
       listener = new THREE.AudioListener();
       camera.add(listener);
@@ -274,17 +361,32 @@
         label.addEventListener('click', (e) => {
           e.stopPropagation();
           console.log('[LABEL CLICK]', station.title);
+          playSound(clickSound);
           openPopup(station);
         });
         
         // HOVER handler on label
         label.addEventListener('mouseenter', () => {
           console.log('[LABEL HOVER]', station.title);
+          playSound(hoverSound);
           showPreview(station);
         });
         
         label.addEventListener('mouseleave', () => {
           hidePreview();
+        });
+        
+        // Touch events for mobile
+        label.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          playSound(hoverSound);
+          showPreview(station);
+        });
+        
+        label.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          playSound(clickSound);
+          openPopup(station);
         });
 
         console.log('[BUILD] Island created:', station.title, 'at', posX, posZ);
@@ -450,6 +552,8 @@
       console.log('[POPUP] Opening:', data.title);
       console.log('[POPUP] Content:', data.content);
       
+      playSound(popupSound);
+      
       const el = document.getElementById('popupBody');
       const content = data.content || {};
       
@@ -537,12 +641,29 @@
     (function(){
       const start = document.getElementById('start'); 
       const go = document.getElementById('go'); 
-      const music = document.getElementById('bg');
+      const soundBtn = document.getElementById('soundBtn');
+      
+      // Sound toggle button
+      soundBtn.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        soundBtn.innerText = soundEnabled ? '🔊' : '🔇';
+        soundBtn.classList.toggle('muted', !soundEnabled);
+        
+        if (soundEnabled) {
+          bgMusic.volume = 0.35;
+          bgMusic.play().catch(e => console.log('Music blocked'));
+        } else {
+          bgMusic.pause();
+        }
+      });
       
       go.addEventListener('click', ()=>{ 
         start.classList.add('hidden'); 
-        music.volume = 0.35; 
-        music.play().catch(e => console.warn("Audio blocked:", e.message));
+        
+        if (soundEnabled) {
+          bgMusic.volume = 0.35; 
+          bgMusic.play().catch(e => console.warn("Audio blocked:", e.message));
+        }
       }, {once:true});
     })();
 
