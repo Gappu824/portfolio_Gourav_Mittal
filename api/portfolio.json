@@ -1,0 +1,129 @@
+{
+  "name": "Gourav Mittal",
+  "tagline": "AI/ML Engineer | Full-Stack Developer | Competitive Programmer",
+  "contact": {
+    "email": "mittalgourav91@gmail.com",
+    "phone": "+91-952-152-6925",
+    "linkedin": "https://linkedin.com/in/gouravmittal",
+    "github": "https://github.com/Gappu824",
+    "leetcode": "https://leetcode.com/u/mittalgourav91/"
+  },
+  "models": {
+    "avatar": "avatar.glb",
+    "welcome": "House.glb",
+    "skills": "skills.glb",
+    "projects": "Forest.glb",
+    "experience": "Mountain.glb",
+    "achievements": "pyramid.glb"
+  },
+  "stations": [
+    {
+      "id": "welcome",
+      "title": "\ud83d\udc4b About Me",
+      "position": {
+        "x": 0,
+        "z": 0
+      },
+      "type": "welcome",
+      "content": {
+        "heading": "Hi, I'm Gourav Mittal!",
+        "subtitle": "Computer Science Engineer | BIT Mesra (8.25 CGPA)",
+        "description": "Welcome to my interactive 3D portfolio! I'm passionate about AI/ML, full-stack development, and solving complex algorithmic problems. Currently pursuing B.Tech at BIT Mesra, graduating in 2026.",
+        "highlights": [
+          "\ud83c\udf93 8.25 CGPA | BIT Mesra | Graduating 2026",
+          "\ud83c\udfc6 Amazon ML Summer School 2025 - Top 5% nationwide",
+          "\ud83d\udca1 All India Rank 124 in Bajaj HackRX 6.0",
+          "\ud83d\ude80 200+ LeetCode Problems Solved",
+          "\ud83d\udccd Based in Jaipur, Rajasthan"
+        ]
+      }
+    },
+    {
+      "id": "skills",
+      "title": "\u26a1 Skills",
+      "position": {
+        "x": 0,
+        "z": 18
+      },
+      "type": "skills",
+      "content": {
+        "heading": "Technical Expertise",
+        "subtitle": "Full-Stack Development | ML/AI Specialization | Data Science",
+        "description": "Comprehensive technical skills across programming languages, frameworks, cloud platforms, and data engineering.",
+        "items": [
+          "\ud83d\udcbb Languages: Python, SQL, C++, JavaScript, R, HTML/CSS",
+          "\ud83e\udd16 ML & AI: TensorFlow, PyTorch, Scikit-learn, LangChain, Hugging Face, RAG, NLP, LLMs",
+          "\u2601\ufe0f Cloud: AWS (Lambda, SageMaker, Bedrock), GCP (Vertex AI, BigQuery, Cloud Run)",
+          "\ud83d\udd27 DevOps: Docker, CI/CD Pipelines, Git, Pytest, TDD, Infrastructure as Code",
+          "\ud83d\udcca Databases: PostgreSQL, MongoDB, Redis, DynamoDB, BigQuery",
+          "\ud83c\udf10 Web: React Native, FastAPI, RESTful APIs, Microservices",
+          "\ud83d\udcc8 Data Science: A/B Testing, Statistical Analysis, Time Series, Power BI, Tableau"
+        ]
+      }
+    },
+    {
+      "id": "projects",
+      "title": "\ud83d\ude80 Projects",
+      "position": {
+        "x": 18,
+        "z": 0
+      },
+      "type": "projects",
+      "content": {
+        "heading": "Featured Projects",
+        "subtitle": "Production-Ready ML Systems | Full-Stack Applications",
+        "description": "Showcasing my best work in AI/ML, full-stack development, and data engineering.",
+        "items": [
+          "\ud83c\udfaf Enterprise RAG Pipeline - 94.2% accuracy, Google Cloud deployment, 100+ concurrent users",
+          "\u2728 Aura AI Platform - AWS serverless, dual-engine trust & clarity system",
+          "\ud83c\udf7d\ufe0f AI Meal Planner - Fine-tuned LLM, React Native app, smart pantry sync",
+          "\ud83d\udcc8 Algorithmic Trading - Neural networks (TCN, LSTM, Transformer) for Indian markets",
+          "\ud83c\udfc6 Amazon ML Challenge 2025 - Top 3,500 among 70,000+ participants"
+        ]
+      }
+    },
+    {
+      "id": "experience",
+      "title": "\ud83d\udcbc Experience",
+      "position": {
+        "x": 0,
+        "z": -18
+      },
+      "type": "experience",
+      "content": {
+        "heading": "Work Experience",
+        "subtitle": "To-let Globe | Data Analyst Intern | Apr-Jul 2025",
+        "description": "Drove data-driven insights for marketing campaigns and operational optimization at a real estate technology company.",
+        "items": [
+          "\ud83d\udcca Analyzed 2M+ social media impressions & 149K website views",
+          "\ud83d\udcc8 Built 4 interactive Power BI dashboards - reduced reporting time by 70%",
+          "\ud83c\udfaf Classified 41K+ social followers & identified posts with 5K+ engagements",
+          "\u26a1 Automated data cleaning for 250K+ daily records using Excel, Power BI, SQL",
+          "\ud83c\udfc5 Received formal management recognition for actionable insights"
+        ]
+      }
+    },
+    {
+      "id": "achievements",
+      "title": "\ud83c\udfc6 Achievements",
+      "position": {
+        "x": -18,
+        "z": 0
+      },
+      "type": "achievements",
+      "content": {
+        "heading": "Achievements & Recognition",
+        "subtitle": "National-Level Competitions | Academic Excellence",
+        "description": "Proven track record in prestigious hackathons, competitions, and academic performance.",
+        "items": [
+          "\ud83e\udd47 Amazon ML Summer School 2025 - Selected from Top 5% nationwide",
+          "\ud83e\udd47 Bajaj HackRX 6.0 - AIR 124 (Top 0.27% of 46,000+ registrants)",
+          "\ud83e\udd47 HackOn with Amazon Season 5 - Top 130 (Top 0.25% of 52,000+)",
+          "\ud83e\udd49 Battle of Bytes BIT Mesra - 3rd Place",
+          "\ud83c\udfaf Smart India Hackathon - Top 15 in Internal Competition",
+          "\ud83d\udcca Amazon ML Challenge 2025 - Top 5% (3,500/70,000+)"
+        ]
+      }
+    }
+  ]
+}
