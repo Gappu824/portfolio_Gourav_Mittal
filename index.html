@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gourav's World</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+        "three/": "https://unpkg.com/three@0.164.1/"
+      }
+    }
+  </script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial;background:linear-gradient(180deg,#74bdf3 0%,#a9d6ff 100%);color:#1f2937;overflow:hidden}
+    #canvas{position:fixed;inset:0}
+    
+    #start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);color:#fff;z-index:50;transition:opacity .4s}
+    #start.hidden{opacity:0;pointer-events:none}
+    #start h1{font-size:32px;font-weight:800;letter-spacing:.5px}
+    #start p{opacity:.9;font-size:16px}
+    #go{padding:14px 28px;border:0;border-radius:999px;background:#fff;color:#111;font-weight:700;cursor:pointer;font-size:16px;transition:transform .2s}
+    #go:hover{transform:scale(1.05)}
+    
+    .hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.95);padding:12px 20px;border-radius:16px;font-size:14px;color:#374151;z-index:10;box-shadow:0 6px 30px rgba(0,0,0,.15);font-weight:500}
+    
+    #avatarCard{position:fixed;top:20px;right:20px;background:linear-gradient(135deg, rgba(255,255,255,.98), rgba(238,242,255,.98));padding:20px;border-radius:20px;box-shadow:0 8px 32px rgba(79,70,229,.2);max-width:320px;z-index:15;backdrop-filter:blur(10px);border:1px solid rgba(99,102,241,.3)}
+    #avatarCard h3{font-size:20px;margin-bottom:8px;background:linear-gradient(135deg, #4f46e5, #6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700}
+    #avatarCard p{font-size:14px;line-height:1.6;color:#4b5563;margin-bottom:12px}
+    #avatarCard .tip{background:linear-gradient(135deg, #eef2ff, #e0e7ff);padding:10px 12px;border-radius:10px;font-size:13px;color:#4f46e5;border-left:3px solid #6366f1}
+    
+    #hoverCard{position:fixed;bottom:80px;left:20px;background:linear-gradient(135deg, rgba(255,255,255,.98), rgba(238,242,255,.98));padding:18px;border-radius:16px;box-shadow:0 6px 24px rgba(79,70,229,.25);max-width:340px;z-index:15;opacity:0;pointer-events:none;transition:all .3s;backdrop-filter:blur(10px);border:1px solid rgba(99,102,241,.3)}
+    #hoverCard.active{opacity:1;transform:translateY(-5px)}
+    #hoverCard .badge{display:inline-block;background:linear-gradient(135deg, #6366f1, #818cf8);color:#fff;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600;margin-bottom:8px;box-shadow:0 2px 8px rgba(99,102,241,.3)}
+    #hoverCard h4{font-size:18px;margin-bottom:6px;background:linear-gradient(135deg, #4f46e5, #6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700}
+    #hoverCard .preview{font-size:13px;line-height:1.5;color:#6b7280}
+    #hoverCard .click-hint{margin-top:10px;font-size:12px;background:linear-gradient(135deg, #6366f1, #818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:600}
+    
+    /* CLICKABLE LABELS - Main interaction point */
+    .island-label{
+      position:absolute;
+      background:linear-gradient(135deg, rgba(79,70,229,.95), rgba(99,102,241,.95));
+      color:#fff;
+      padding:12px 20px;
+      border-radius:12px;
+      font-size:15px;
+      font-weight:700;
+      cursor:pointer;
+      transform:translate(-50%,-50%);
+      white-space:nowrap;
+      box-shadow:0 6px 20px rgba(0,0,0,.3);
+      z-index:20;
+      border:2px solid rgba(255,255,255,.4);
+      transition:all .3s;
+      pointer-events:auto;
+    }
+    .island-label:hover{
+      transform:translate(-50%,-50%) scale(1.1);
+      box-shadow:0 8px 24px rgba(79,70,229,.5);
+      background:linear-gradient(135deg, rgba(99,102,241,.98), rgba(79,70,229,.98));
+    }
+    .island-label:active{
+      transform:translate(-50%,-50%) scale(1.05);
+    }
+    
+    .popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.96);background:linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);width:min(600px,92vw);max-height:82vh;overflow-y:auto;border-radius:24px;padding:32px;box-shadow:0 30px 80px rgba(79,70,229,.4);opacity:0;pointer-events:none;transition:all .25s cubic-bezier(.4,0,.2,1);z-index:100;border:2px solid rgba(99,102,241,.2)}
+    .popup.active{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+    .popup h2{font-size:32px;margin-bottom:8px;background:linear-gradient(135deg, #4f46e5, #6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800}
+    .popup .subtitle{background:linear-gradient(135deg, #6366f1, #818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;margin-bottom:14px;font-size:16px}
+    .popup .description{line-height:1.8;margin:.5rem 0 1.2rem;color:#4b5563;font-size:15px}
+    .popup .contact-links{display:flex;flex-wrap:wrap;gap:10px;margin:1.2rem 0}
+    .popup .contact-links a{display:inline-block;padding:10px 18px;background:linear-gradient(135deg, #eef2ff, #e0e7ff);color:#4f46e5;text-decoration:none;border-radius:999px;font-weight:600;font-size:14px;transition:all .2s;border:1px solid rgba(79,70,229,.2)}
+    .popup .contact-links a:hover{background:linear-gradient(135deg, #4f46e5, #6366f1);color:#fff;transform:translateY(-2px);box-shadow:0 4px 12px rgba(79,70,229,.3)}
+    .popup-item{background:linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);border-left:4px solid #6366f1;padding:12px 14px;border-radius:10px;margin:.45rem 0;color:#1f2937;font-size:14px;line-height:1.6;box-shadow:0 2px 4px rgba(0,0,0,.05)}
+    .popup-highlight{background:linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);border-left:4px solid #818cf8;padding:12px 14px;border-radius:10px;margin:.45rem 0;color:#1f2937;font-weight:500;font-size:14px;box-shadow:0 2px 4px rgba(99,102,241,.1)}
+    .x{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:0;background:linear-gradient(135deg, #f3f4f6, #e5e7eb);cursor:pointer;font-size:24px;transition:all .2s;color:#6b7280;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+    .x:hover{background:linear-gradient(135deg, #e5e7eb, #d1d5db);transform:scale(1.1);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+  </style>
+</head>
+<body>
+  <div id="start">
+    <h1>Loading Gourav's World...</h1>
+    <p>Building your interactive 3D portfolio...</p>
+    <button id="go">Start Exploring</button>
+  </div>
+  
+  <div class="hint">👆 Click island labels to view details · 🔄 Drag to rotate</div>
+  
+  <div id="avatarCard">
+    <h3>👋 Welcome!</h3>
+    <p>I'm <strong>Gourav Mittal</strong>, an AI/ML Engineer.</p>
+    <div class="tip">💡 <strong>Tip:</strong> Click the colorful labels above islands to view content!</div>
+  </div>
+  
+  <div id="hoverCard">
+    <div class="badge" id="hoverBadge">PREVIEW</div>
+    <h4 id="hoverTitle">Island Title</h4>
+    <div class="preview" id="hoverPreview">Hover over a label...</div>
+    <div class="click-hint">👆 Click label to view full details</div>
+  </div>
+  
+  <audio id="bg" loop>
+    <source src="https://assets.codepen.io/210284/The-Grand-Affair.mp3" type="audio/mpeg" />
+  </audio>
+  
+  <div id="canvas"></div>
+  
+  <div id="popup" class="popup">
+    <button class="x" id="closePopupBtn">×</button>
+    <div id="popupBody"></div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.164.1/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.164.1/examples/jsm/controls/OrbitControls.js';
+    import { GLTFLoader } from 'https://unpkg.com/three@0.164.1/examples/jsm/loaders/GLTFLoader.js';
+
+    let STATIONS = [];
+    const MODELS = {};
+    let portfolioConfig = {};
+    
+    const GH = 'https://raw.githubusercontent.com/Gappu824/3Dmesh/main/';
+    const JD = 'https://cdn.jsdelivr.net/gh/Gappu824/3Dmesh@main/';
+    
+    function buildModelUrls(filename) {
+      if (!filename) return [null, null]; 
+      return [JD + filename, GH + filename];
+    }
+
+    let scene, camera, renderer, controls, clock, listener, avatar, avatarIsland;
+    const root = document.getElementById('canvas');
+    const islandLabels = new Map();
+    const islandGroups = [];
+
+    async function init() {
+      try {
+        console.log('[INIT] Fetching portfolio data...');
+        const response = await fetch('/api/portfolio');
+        if (!response.ok) throw new Error(`Failed: ${response.statusText}`);
+        portfolioConfig = await response.json();
+        console.log('[INIT] Data loaded successfully');
+        console.log('[INIT] Stations:', portfolioConfig.stations.map(s => s.title));
+
+        STATIONS = portfolioConfig.stations || [];
+        
+        for (const key in portfolioConfig.models) {
+          MODELS[key] = buildModelUrls(portfolioConfig.models[key]);
+        }
+        
+        document.title = `${portfolioConfig.name}'s World`;
+        document.querySelector('#avatarCard p').innerHTML = `I'm <strong>${portfolioConfig.name}</strong>, ${portfolioConfig.tagline}.`;
+
+      } catch (error) {
+        console.error('[ERROR] Fatal:', error);
+        alert('Failed to load portfolio data. Check console for details.');
+        return;
+      }
+      
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x87ceeb);
+      scene.fog = new THREE.Fog(0x87ceeb, 50, 150);
+
+      camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 500);
+      camera.position.set(0, 50, 75);
+
+      renderer = new THREE.WebGLRenderer({ antialias:true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      root.appendChild(renderer.domElement);
+
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true; 
+      controls.dampingFactor = 0.05; 
+      controls.target.set(0, 0, 0);
+      controls.minDistance = 30;
+      controls.maxDistance = 120;
+      controls.maxPolarAngle = Math.PI / 2.2;
+
+      listener = new THREE.AudioListener();
+      camera.add(listener);
+
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x88aaff, 0.8));
+      const dir = new THREE.DirectionalLight(0xffffff, 1.2);
+      dir.position.set(30, 40, 20);
+      dir.castShadow = true; 
+      dir.shadow.mapSize.set(2048,2048);
+      dir.shadow.camera.left = -60;
+      dir.shadow.camera.right = 60;
+      dir.shadow.camera.top = 60;
+      dir.shadow.camera.bottom = -60;
+      scene.add(dir);
+
+      const groundShadow = new THREE.Mesh(
+        new THREE.CircleGeometry(100,64), 
+        new THREE.ShadowMaterial({opacity:0.2})
+      );
+      groundShadow.rotation.x = -Math.PI/2; 
+      groundShadow.position.y = -1;
+      groundShadow.receiveShadow = true; 
+      scene.add(groundShadow);
+
+      clock = new THREE.Clock();
+
+      window.addEventListener('resize', onResize);
+      
+      document.getElementById('closePopupBtn').addEventListener('click', closePopup);
+
+      buildIslands();
+      createAvatarIsland();
+      animate();
+    }
+
+    function onResize(){
+      camera.aspect = window.innerWidth/window.innerHeight; 
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function plate(radiusTop=5, radiusBottom=6, height=2){
+      const g = new THREE.Group();
+      const top = new THREE.Mesh(
+        new THREE.CylinderGeometry(radiusTop, radiusTop, 0.8, 48), 
+        new THREE.MeshStandardMaterial({ color:0x38a169, roughness:0.75 })
+      );
+      top.position.y = height; 
+      top.castShadow = true; 
+      top.receiveShadow = true; 
+      g.add(top);
+      
+      const base = new THREE.Mesh(
+        new THREE.CylinderGeometry(radiusTop, radiusBottom, height, 48), 
+        new THREE.MeshStandardMaterial({ color:0x6ea8e5, roughness:0.8, metalness:0.05 })
+      );
+      base.position.y = height/2; 
+      base.castShadow = true; 
+      base.receiveShadow = true; 
+      g.add(base);
+      return g;
+    }
+
+    function buildIslands(){
+      console.log('[BUILD] Creating', STATIONS.length, 'islands');
+      
+      STATIONS.forEach((station, i) => {
+        const posX = station.position?.x || 0;
+        const posZ = station.position?.z || 0;
+        const posY = 0;
+        
+        const isCenter = (station.id === 'welcome');
+        const grp = new THREE.Group();
+        grp.add(plate(isCenter ? 6 : 5, isCenter ? 7 : 6, isCenter ? 2.5 : 2));
+        
+        grp.position.set(posX, posY, posZ);
+        grp.userData.meta = station;
+        grp.userData.baseY = posY;
+        grp.userData.bobOffset = Math.random()*Math.PI*2;
+        islandGroups.push(grp); 
+        scene.add(grp);
+
+        // Create CLICKABLE label
+        const label = document.createElement('div');
+        label.className = 'island-label';
+        label.innerText = station.title;
+        label.style.pointerEvents = 'auto';
+        document.body.appendChild(label);
+        
+        // Store reference
+        islandLabels.set(grp, label);
+        
+        // CLICK handler on label
+        label.addEventListener('click', (e) => {
+          e.stopPropagation();
+          console.log('[LABEL CLICK]', station.title);
+          openPopup(station);
+        });
+        
+        // HOVER handler on label
+        label.addEventListener('mouseenter', () => {
+          console.log('[LABEL HOVER]', station.title);
+          showPreview(station);
+        });
+        
+        label.addEventListener('mouseleave', () => {
+          hidePreview();
+        });
+
+        console.log('[BUILD] Island created:', station.title, 'at', posX, posZ);
+
+        // Load 3D model
+        const urls = MODELS[station.type];
+        
+        if (urls && urls[0]) { 
+          loadGLBWithFallback(urls, (model)=>{ 
+            // Add slight emission for visibility
+            model.traverse(obj => {
+              if (obj.isMesh) {
+                obj.castShadow = true;
+                obj.receiveShadow = true;
+                if (obj.material) {
+                  obj.material.emissive = new THREE.Color(0x111111);
+                  obj.material.emissiveIntensity = 0.1;
+                }
+              }
+            });
+            
+            normalizeAndPlace(model, isCenter ? 2.5 : 2);
+            grp.add(model); 
+            console.log('[MODEL] Loaded & placed:', station.title);
+          });
+        } else {
+          console.warn('[MODEL] No model URL for:', station.title);
+        }
+      });
+    }
+
+    function createAvatarIsland() {
+      console.log('[AVATAR] Creating avatar island');
+      
+      avatarIsland = new THREE.Group();
+      avatarIsland.add(plate(4, 5, 1.8));
+      avatarIsland.position.set(-25, 0, -15);
+      avatarIsland.userData.baseY = 0;
+      avatarIsland.userData.bobOffset = Math.random()*Math.PI*2;
+      scene.add(avatarIsland);
+      
+      // Label for avatar
+      const label = document.createElement('div');
+      label.className = 'island-label';
+      label.innerText = '🎭 Avatar';
+      label.style.pointerEvents = 'none'; // Not clickable
+      label.style.cursor = 'default';
+      label.style.opacity = '0.8';
+      document.body.appendChild(label);
+      islandLabels.set(avatarIsland, label);
+      
+      if (MODELS.avatar && MODELS.avatar[0]) {
+        loadGLBWithFallback(MODELS.avatar, (m) => {
+          console.log('[AVATAR] Model loaded');
+          
+          m.traverse(obj => {
+            if (obj.isMesh) {
+              obj.castShadow = true;
+              obj.receiveShadow = true;
+            }
+          });
+          
+          const box = new THREE.Box3().setFromObject(m);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          
+          // BIGGEST model - avatar is the star! Increased from 3.5 to 6
+          const scale = 6 / Math.max(size.x, size.y, size.z || 1);
+          m.scale.setScalar(scale);
+          
+          const center = new THREE.Vector3();
+          box.getCenter(center);
+          m.position.sub(center.multiplyScalar(scale));
+          
+          // Higher floating position
+          m.position.y += 3.5; // Increased from 2.3
+          m.rotation.y = Math.PI / 3;
+          
+          avatarIsland.add(m);
+          avatar = m;
+        });
+      }
+    }
+
+    function normalizeAndPlace(model, baseHeight){
+      const box = new THREE.Box3().setFromObject(model); 
+      const size = new THREE.Vector3(); 
+      box.getSize(size);
+      
+      // BIGGER models - increased from 4 to 6
+      let targetSize = 6;
+      if (size.x < 2 || size.z < 2) targetSize = 7; // Even bigger for small models
+      
+      const scale = targetSize / Math.max(size.x, size.y, size.z || 1);
+      model.scale.setScalar(scale);
+      
+      const center = new THREE.Vector3(); 
+      box.getCenter(center);
+      model.position.sub(center.multiplyScalar(scale));
+      
+      // FLOATING effect - models sit higher on islands
+      model.position.y += baseHeight + 2.5; // Increased from 1.2 to 2.5
+    }
+
+    const loader = new GLTFLoader();
+    function loadGLBWithFallback(urls, cb, idx=0){
+      const url = urls[idx];
+      console.log('[LOAD] Attempting:', url);
+      
+      loader.load(
+        url, 
+        (gltf) => { 
+          console.log('[LOAD] ✅ Success:', url); 
+          cb(gltf.scene || gltf.scenes?.[0]); 
+        }, 
+        (progress) => {
+          const percent = (progress.loaded / progress.total * 100).toFixed(0);
+          console.log('[LOAD] Progress:', percent + '%', url);
+        },
+        (error) => {
+          console.error('[LOAD] ❌ Failed:', url, error.message);
+          if(idx + 1 < urls.length && urls[idx+1]) {
+            console.log('[LOAD] Trying fallback...');
+            loadGLBWithFallback(urls, cb, idx+1); 
+          } else {
+            console.error('[LOAD] All sources failed');
+          }
+        }
+      );
+    }
+
+    const hoverCard = document.getElementById('hoverCard');
+    const hoverBadge = document.getElementById('hoverBadge');
+    const hoverTitle = document.getElementById('hoverTitle');
+    const hoverPreview = document.getElementById('hoverPreview');
+    
+    function showPreview(station) {
+      const content = station.content || {};
+      
+      const badgeMap = {
+        'skills': '⚡ SKILLS',
+        'welcome': '👋 ABOUT',
+        'experience': '💼 WORK',
+        'achievements': '🏆 AWARDS',
+        'projects': '🚀 PROJECTS'
+      };
+      hoverBadge.innerText = badgeMap[station.type] || 'INFO';
+      
+      hoverTitle.innerText = content.heading || station.title;
+      
+      let preview = content.subtitle || content.description || '';
+      if (preview.length > 120) preview = preview.substring(0, 120) + '...';
+      hoverPreview.innerText = preview;
+      
+      hoverCard.classList.add('active');
+    }
+    
+    function hidePreview() {
+      hoverCard.classList.remove('active');
+    }
+
+    function openPopup(data){
+      console.log('[POPUP] Opening:', data.title);
+      console.log('[POPUP] Content:', data.content);
+      
+      const el = document.getElementById('popupBody');
+      const content = data.content || {};
+      
+      let html = `<h2>${content.heading || data.title}</h2>`; 
+      if(content.subtitle) html += `<div class="subtitle">${content.subtitle}</div>`; 
+      if(content.description) html += `<div class="description">${content.description}</div>`;
+      
+      if (data.type === 'welcome' || data.id === 'welcome') {
+        html += '<div class="contact-links">';
+        if (portfolioConfig.contact?.linkedin) html += `<a href="${portfolioConfig.contact.linkedin}" target="_blank">LinkedIn</a>`;
+        if (portfolioConfig.contact?.github) html += `<a href="${portfolioConfig.contact.github}" target="_blank">GitHub</a>`;
+        if (portfolioConfig.contact?.leetcode) html += `<a href="${portfolioConfig.contact.leetcode}" target="_blank">LeetCode</a>`;
+        if (portfolioConfig.contact?.email) html += `<a href="mailto:${portfolioConfig.contact.email}">Email</a>`;
+        if (portfolioConfig.contact?.phone) html += `<a href="tel:${portfolioConfig.contact.phone}">Call</a>`;
+        html += '</div>';
+      }
+      
+      if (content.highlights && content.highlights.length > 0) {
+        content.highlights.forEach(h => html += `<div class="popup-highlight">${h}</div>`); 
+      }
+      
+      if (content.items && content.items.length > 0) {
+        content.items.forEach(it => html += `<div class="popup-item">${it}</div>`); 
+      }
+      
+      el.innerHTML = html; 
+      document.getElementById('popup').classList.add('active');
+      console.log('[POPUP] ✅ Displayed');
+    }
+    
+    window.closePopup = function(){ 
+      document.getElementById('popup').classList.remove('active'); 
+      console.log('[POPUP] Closed');
+    };
+
+    function updateLabels() {
+      const allIslands = [...islandGroups];
+      if (avatarIsland) allIslands.push(avatarIsland);
+      
+      allIslands.forEach(island => {
+        const label = islandLabels.get(island);
+        if (!label) return;
+        
+        const pos = island.position.clone();
+        pos.y += 11;
+        
+        const screenPos = pos.project(camera);
+        
+        if (screenPos.z < 1 && screenPos.z > -1) {
+          const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+          const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
+          
+          label.style.left = x + 'px';
+          label.style.top = y + 'px';
+          label.style.display = 'block';
+        } else {
+          label.style.display = 'none';
+        }
+      });
+    }
+
+    function animate(){
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+      
+      islandGroups.forEach(g => { 
+        const bob = Math.sin(t*1.2 + g.userData.bobOffset)*0.3;
+        g.position.y = g.userData.baseY + bob;
+      });
+      
+      if (avatarIsland) {
+        const bob = Math.sin(t*1.2 + avatarIsland.userData.bobOffset)*0.3;
+        avatarIsland.position.y = avatarIsland.userData.baseY + bob;
+      }
+      
+      if (avatar) {
+        avatar.rotation.y += 0.005;
+      }
+      
+      updateLabels();
+      controls.update(); 
+      renderer.render(scene, camera);
+    }
+
+    (function(){
+      const start = document.getElementById('start'); 
+      const go = document.getElementById('go'); 
+      const music = document.getElementById('bg');
+      
+      go.addEventListener('click', ()=>{ 
+        start.classList.add('hidden'); 
+        music.volume = 0.35; 
+        music.play().catch(e => console.warn("Audio blocked:", e.message));
+      }, {once:true});
+    })();
+
+    // Initialize
+    init();
+  </script>
+</body>
+</html>
